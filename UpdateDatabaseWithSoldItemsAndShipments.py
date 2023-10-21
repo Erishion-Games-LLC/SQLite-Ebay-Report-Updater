@@ -37,9 +37,9 @@ def parse_date(date_str):
             # Try parsing 'Jul 3, 2023' format
             return datetime.strptime(date_str, '%b %d, %Y').strftime('%Y%m%d')
         except ValueError:
-            # Handle any other formats or return a default value
-            return 'YYYYMMDD'  # You can specify a default value here
-        createLog('Cannot parse the date correctly')
+            createLog('Cannot parse the date correctly')
+            return None
+
 
 def findItemType(customLabel):
     if customLabel.startswith('G'):
@@ -59,7 +59,6 @@ def createShipmentOutEntries(connection):
     with connection:
         cursor = connection.cursor()
 
-        # Define the CSV file path
         ebayReport = 'EbayReports\Ebay Orders Report.csv'
 
 
@@ -96,8 +95,8 @@ def createShipmentOutEntries(connection):
 
 
                 except sqlite3.Error as e:
-                    #Log the error
                     createLog(f"SQLite Error on shipmentTable: {str(e)} - Order Number: {orderNumber} - Tracking Number: {trackingNumber} - Carrier: {carrier}\n")
+
         connection.commit()
         print("Entries added to ShipmentsOut table successfully.")
 
@@ -106,10 +105,9 @@ def createSalesEntries(connection):
     with connection:    
         cursor = connection.cursor()
 
-        # Define the CSV file path
         ebayReport = 'EbayReports\Ebay Transaction Report.csv'
 
-
+        # Open the CSV file and read its contents
         with open(ebayReport, 'r') as csvfile:
             csvreader = csv.DictReader(csvfile)
 
@@ -151,12 +149,10 @@ def createSalesEntries(connection):
 
 
                     except sqlite3.Error as e:
-                        #Log the error
                         createLog(f"SQLite Error on sales table: {str(e)} - Order Number: {platformSaleID}\n")
 
                 elif 'Shipping label'.strip().lower() in type.strip().lower():
 
-                    print('execute shipping label')
                     marketplace = 'Ebay'
                     platformSaleID = row['Order number']
                     shippingCost = int(Decimal(row['Net amount']) * 100)
@@ -177,7 +173,6 @@ def createSalesEntries(connection):
                             )
                             connection.commit()
                         except sqlite3.Error as e:
-                        #Log the error
                             createLog(f"SQLite Error on sales table: {str(e)} - Order Number: {platformSaleID}\n")
                 else:
                     continue
@@ -221,7 +216,6 @@ def createSaleItemsEntries(connection, saleID, date, customLabel, orderSubtotal)
                 return
             
         except sqlite3.Error as e:
-            #Log the error
             createLog(f"SQLite Error on saleItems table: {str(e)} - Sale ID: {saleID} - ID: {customLabel}\n")
 
         print('Added saleitem')
